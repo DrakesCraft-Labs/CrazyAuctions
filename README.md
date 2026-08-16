@@ -1,5 +1,23 @@
 <center><div align="center">
 
+![CrazyAuctions Drake](banner.svg)
+
+## CrazyAuctions Drake
+
+Fork de producción de DrakesCraft basado en CrazyAuctions 1.7.0 y adaptado a Purpur 1.21.11.
+
+- Mercados aislados por modalidad y familia de mundos.
+- Migración segura de publicaciones legacy a Survival.
+- Validación del mercado antes de comprar, pujar o cancelar.
+- Mundos técnicos sin acceso a subastas.
+- Datos existentes compatibles, sin migración destructiva.
+
+Configuración: `Settings.Markets` en `config.yml`.
+
+Proyecto original: [Crazy-Crew/CrazyAuctions](https://github.com/Crazy-Crew/CrazyAuctions). Se conserva su licencia MIT y atribución.
+
+---
+
 ![CrazyAuctions](https://raw.githubusercontent.com/Crazy-Crew/Branding/main/crazyauctions/banner/webp/banner.webp)
 
 [![Contributors][contributors-shield]][contributors-url]

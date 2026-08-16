@@ -9,6 +9,7 @@ import com.badbones69.crazyauctions.commands.AuctionTab;
 import com.badbones69.crazyauctions.controllers.GuiListener;
 import com.badbones69.crazyauctions.controllers.MarcoListener;
 import com.badbones69.crazyauctions.currency.VaultSupport;
+import com.badbones69.crazyauctions.market.AuctionMarketManager;
 import com.ryderbelserion.vital.paper.Vital;
 import com.ryderbelserion.vital.paper.util.scheduler.FoliaRunnable;
 import org.bukkit.OfflinePlayer;
@@ -32,6 +33,8 @@ public class CrazyAuctions extends Vital {
 
     private VaultSupport support;
 
+    private AuctionMarketManager marketManager;
+
     @Override
     public void onEnable() {
         if (!getServer().getPluginManager().isPluginEnabled("Vault")) {
@@ -49,6 +52,8 @@ public class CrazyAuctions extends Vital {
                 .init();
 
         this.crazyManager = new CrazyManager();
+        this.marketManager = new AuctionMarketManager(this);
+        this.marketManager.reload();
 
         FileConfiguration configuration = Files.data.getConfiguration();
 
@@ -151,5 +156,9 @@ public class CrazyAuctions extends Vital {
 
     public final CrazyManager getCrazyManager() {
         return this.crazyManager;
+    }
+
+    public AuctionMarketManager getMarketManager() {
+        return this.marketManager;
     }
 }

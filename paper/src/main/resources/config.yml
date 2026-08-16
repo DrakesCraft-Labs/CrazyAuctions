@@ -16,6 +16,30 @@ Settings:
   Max-Beginning-Bid-Price: 1000000 #Maximum starting bid.
   Allow-Damaged-Items: false #Allow items that have been damaged.
   Category-Page-Opens-First: false #If set to true the categories' page will open when they do /CA.
+  Markets:
+    Enabled: true
+    Legacy-Market: survival
+    Messages:
+      Unavailable: '&cLas subastas no estan disponibles en este mundo.'
+      Mismatch: '&cEsa publicacion pertenece a otra modalidad.'
+    Denied-Worlds:
+      - boss_arena
+      - boss_dimension
+      - drakes_bosses
+      - nlogin_limbo
+    Definitions:
+      survival:
+        Label: Survival
+        Worlds: [world, overworld, world_nether, the_nether, world_the_end, the_end, SpawnWarps, spawnwarps, dimensionalhome, galactifun_space, world_galactifun_earth_orbit, world_galactifun_enceladus, world_galactifun_io, world_galactifun_mars, world_galactifun_moon, world_galactifun_the_moon, world_galactifun_titan, world_galactifun_venus]
+      clasico:
+        Label: Clasico
+        Worlds: [clasico, clasico_nether, clasico_the_end]
+      oneblock:
+        Label: OneBlock
+        Worlds: [oneblock_world, oneblock_world_nether, oneblock_world_the_end]
+      skyblock:
+        Label: SkyBlock
+        Worlds: [bskyblock_world, bskyblock_world_nether, bskyblock_world_the_end]
   Feature-Toggle: #Toggle if a feature is on or off.
     Selling: true #Able to use the selling part of the auction house.
     Bidding: true #Able to use the bidding part of the auction house.

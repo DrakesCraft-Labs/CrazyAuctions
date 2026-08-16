@@ -316,6 +316,7 @@ public class Methods {
                         data.set("OutOfTime/Cancelled." + num + ".Full-Time", fullExpireTime.getTimeInMillis());
                         data.set("OutOfTime/Cancelled." + num + ".StoreID", data.getInt("Items." + i + ".StoreID"));
                         data.set("OutOfTime/Cancelled." + num + ".Item", data.getString("Items." + i + ".Item"));
+                        plugin.getMarketManager().copyMarket(data, "Items." + i, "OutOfTime/Cancelled." + num);
                     } else {
                         String seller = data.getString("Items." + i + ".Seller");
                         Player player = getPlayer(seller);
@@ -331,6 +332,7 @@ public class Methods {
                         data.set("OutOfTime/Cancelled." + num + ".Full-Time", fullExpireTime.getTimeInMillis());
                         data.set("OutOfTime/Cancelled." + num + ".StoreID", data.getInt("Items." + i + ".StoreID"));
                         data.set("OutOfTime/Cancelled." + num + ".Item", data.getString("Items." + i + ".Item"));
+                        plugin.getMarketManager().copyMarket(data, "Items." + i, "OutOfTime/Cancelled." + num);
                     }
 
                     data.set("Items." + i, null);

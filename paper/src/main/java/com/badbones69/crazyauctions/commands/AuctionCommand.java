@@ -7,6 +7,7 @@ import com.badbones69.crazyauctions.api.enums.*;
 import com.badbones69.crazyauctions.api.events.AuctionCancelledEvent;
 import com.badbones69.crazyauctions.api.events.AuctionListEvent;
 import com.badbones69.crazyauctions.controllers.GuiListener;
+import com.badbones69.crazyauctions.market.AuctionMarketManager;
 import com.ryderbelserion.vital.paper.api.files.FileManager;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -31,6 +32,8 @@ public class AuctionCommand implements CommandExecutor {
 
     private final FileManager fileManager = this.plugin.getFileManager();
 
+    private final AuctionMarketManager marketManager = this.plugin.getMarketManager();
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String commandLabel, String[] args) {
         FileConfiguration config = Files.config.getConfiguration();
@@ -44,6 +47,10 @@ public class AuctionCommand implements CommandExecutor {
             }
 
             if (!Methods.hasPermission(sender, "access")) {
+                return true;
+            }
+
+            if (!this.marketManager.ensureAccessible(player)) {
                 return true;
             }
 
@@ -84,6 +91,7 @@ public class AuctionCommand implements CommandExecutor {
                     this.fileManager.reloadFiles().init();
 
                     this.crazyManager.load();
+                    this.marketManager.reload();
 
                     sender.sendMessage(Messages.RELOAD.getMessage(sender));
 
@@ -96,6 +104,10 @@ public class AuctionCommand implements CommandExecutor {
                     }
                     if (!(sender instanceof Player player)) {
                         sender.sendMessage(Messages.PLAYERS_ONLY.getMessage(sender));
+                        return true;
+                    }
+
+                    if (!this.marketManager.ensureAccessible(player)) {
                         return true;
                     }
 
@@ -112,6 +124,10 @@ public class AuctionCommand implements CommandExecutor {
                     if (!(sender instanceof Player player)) {
                         sender.sendMessage(Messages.PLAYERS_ONLY.getMessage(sender));
 
+                        return true;
+                    }
+
+                    if (!this.marketManager.ensureAccessible(player)) {
                         return true;
                     }
 
@@ -151,6 +167,11 @@ public class AuctionCommand implements CommandExecutor {
                         return true;
                     }
 
+
+                    if (!this.marketManager.ensureAccessible(player)) {
+                        return true;
+                    }
+
                     GuiListener.openPlayersCurrentList(player, 1);
 
                     return true;
@@ -160,6 +181,10 @@ public class AuctionCommand implements CommandExecutor {
                     if (!(sender instanceof Player player)) {
                         sender.sendMessage(Messages.PLAYERS_ONLY.getMessage(sender));
 
+                        return true;
+                    }
+
+                    if (!this.marketManager.ensureAccessible(player)) {
                         return true;
                     }
 
@@ -340,6 +365,7 @@ public class AuctionCommand implements CommandExecutor {
                         data.set("Items." + num + ".Price", price);
                         data.set("Items." + num + ".Seller", seller);
                         data.set("Items." + num + ".SellerName", player.getName());
+                        this.marketManager.stamp(data, "Items." + num, player);
 
                         if (args[0].equalsIgnoreCase("bid")) {
                             data.set("Items." + num + ".Time-Till-Expire", Methods.convertToMill(config.getString("Settings.Bid-Time", "2m 30s")));
@@ -494,6 +520,7 @@ public class AuctionCommand implements CommandExecutor {
             data.set("OutOfTime/Cancelled." + num + ".Full-Time", data.getLong("Items." + i + ".Full-Time"));
             data.set("OutOfTime/Cancelled." + num + ".StoreID", data.getInt("Items." + i + ".StoreID"));
             data.set("OutOfTime/Cancelled." + num + ".Item", data.getString("Items." + i + ".Item"));
+            this.marketManager.copyMarket(data, "Items." + i, "OutOfTime/Cancelled." + num);
 
             data.set("Items." + i, null);
 

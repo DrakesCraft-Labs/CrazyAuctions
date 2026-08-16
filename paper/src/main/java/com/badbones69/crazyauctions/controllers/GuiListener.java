@@ -13,6 +13,7 @@ import com.badbones69.crazyauctions.api.events.AuctionBuyEvent;
 import com.badbones69.crazyauctions.api.events.AuctionCancelledEvent;
 import com.badbones69.crazyauctions.api.events.AuctionNewBidEvent;
 import com.badbones69.crazyauctions.currency.VaultSupport;
+import com.badbones69.crazyauctions.market.AuctionMarketManager;
 import com.ryderbelserion.vital.paper.util.scheduler.FoliaRunnable;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -38,6 +39,7 @@ public class GuiListener implements Listener {
 
     private static final CrazyAuctions plugin = CrazyAuctions.get();
     private static final CrazyManager crazyManager = plugin.getCrazyManager();
+    private static final AuctionMarketManager marketManager = plugin.getMarketManager();
 
     private static final Map<UUID, Integer> bidding = new HashMap<>();
     private static final Map<UUID, String> biddingID = new HashMap<>();
@@ -48,6 +50,8 @@ public class GuiListener implements Listener {
 
     public static void openShop(Player player, ShopType sell, Category cat, int page) {
         Methods.updateAuction();
+
+        if (!marketManager.ensureAccessible(player)) return;
 
         FileConfiguration config = Files.config.getConfiguration();
         FileConfiguration data = Files.data.getConfiguration();
@@ -68,6 +72,7 @@ public class GuiListener implements Listener {
 
         if (data.contains("Items")) {
             for (String i : data.getConfigurationSection("Items").getKeys(false)) {
+                if (!marketManager.matches(player, data, "Items." + i)) continue;
                 ItemBuilder itemBuilder = ItemBuilder.convertItemStack(data.getString("Items." + i + ".Item"));
 
                 List<String> lore = new ArrayList<>(itemBuilder.getUpdatedLore());
@@ -127,7 +132,7 @@ public class GuiListener implements Listener {
         int maxPage = Methods.getMaxPage(items);
         for (; page > maxPage; page--);
 
-        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(config.getString("Settings.GUIName") + " #" + page));
+        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(marketManager.title(player, config.getString("Settings.GUIName")) + " #" + page));
         List<String> options = new ArrayList<>();
 
         options.add("SellingItems");
@@ -199,9 +204,10 @@ public class GuiListener implements Listener {
 
     public static void openCategories(Player player, ShopType shop) {
         Methods.updateAuction();
+        if (!marketManager.ensureAccessible(player)) return;
         FileConfiguration config = Files.config.getConfiguration();
 
-        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(config.getString("Settings.Categories")));
+        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(marketManager.title(player, config.getString("Settings.Categories"))));
 
         List<String> options = new ArrayList<>();
 
@@ -243,13 +249,15 @@ public class GuiListener implements Listener {
     public static void openPlayersCurrentList(Player player, int page) {
         Methods.updateAuction();
 
+        if (!marketManager.ensureAccessible(player)) return;
+
         FileConfiguration config = Files.config.getConfiguration();
         FileConfiguration data = Files.data.getConfiguration();
 
         List<ItemStack> items = new ArrayList<>();
         List<Integer> ID = new ArrayList<>();
 
-        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(config.getString("Settings.Players-Current-Items")));
+        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(marketManager.title(player, config.getString("Settings.Players-Current-Items"))));
 
         List<String> options = new ArrayList<>();
 
@@ -278,6 +286,7 @@ public class GuiListener implements Listener {
 
         if (data.contains("Items")) {
             for (String i : data.getConfigurationSection("Items").getKeys(false)) {
+                if (!marketManager.matches(player, data, "Items." + i)) continue;
                 if (data.getString("Items." + i + ".Seller").equalsIgnoreCase(player.getUniqueId().toString())) {
 
                     String price = Methods.getPrice(i, false);
@@ -412,7 +421,12 @@ public class GuiListener implements Listener {
             return;
         }
 
-        Inventory inv = plugin.getServer().createInventory(null, 9, Methods.color(config.getString("Settings.Buying-Item")));
+        if (!marketManager.ensureListingAccessible(player, data, "Items." + ID)) {
+            player.closeInventory();
+            return;
+        }
+
+        Inventory inv = plugin.getServer().createInventory(null, 9, Methods.color(marketManager.title(player, config.getString("Settings.Buying-Item"))));
 
         List<String> options = new ArrayList<>();
 
@@ -494,7 +508,12 @@ public class GuiListener implements Listener {
             return;
         }
 
-        Inventory inv = plugin.getServer().createInventory(null, 27, Methods.color(config.getString("Settings.Bidding-On-Item")));
+        if (!marketManager.ensureListingAccessible(player, data, "Items." + ID)) {
+            player.closeInventory();
+            return;
+        }
+
+        Inventory inv = plugin.getServer().createInventory(null, 27, Methods.color(marketManager.title(player, config.getString("Settings.Bidding-On-Item"))));
 
         if (!bidding.containsKey(player.getUniqueId())) bidding.put(player.getUniqueId(), 0);
 
@@ -519,6 +538,8 @@ public class GuiListener implements Listener {
     public static void openViewer(Player player, String other, int page) {
         Methods.updateAuction();
 
+        if (!marketManager.ensureAccessible(player)) return;
+
         FileConfiguration config = Files.config.getConfiguration();
         FileConfiguration data = Files.data.getConfiguration();
 
@@ -535,6 +556,7 @@ public class GuiListener implements Listener {
 
         if (data.contains("Items")) {
             for (String i : data.getConfigurationSection("Items").getKeys(false)) {
+                if (!marketManager.matches(player, data, "Items." + i)) continue;
                 if (data.getString("Items." + i + ".Seller").equalsIgnoreCase(other)) {
                     String price = Methods.getPrice(i, false);
                     String time = Methods.convertToTime(data.getLong("Items." + i + ".Time-Till-Expire"));
@@ -594,7 +616,7 @@ public class GuiListener implements Listener {
 
         for (; page > maxPage; page--);
 
-        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(config.getString("Settings.GUIName") + " #" + page));
+        Inventory inv = plugin.getServer().createInventory(null, 54, Methods.color(marketManager.title(player, config.getString("Settings.GUIName")) + " #" + page));
 
         List<String> options = new ArrayList<>();
 
@@ -785,6 +807,10 @@ public class GuiListener implements Listener {
                             if (item.getItemMeta().hasDisplayName()) {
                                 if (item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.Bid.Name")))) {
                                     String ID = biddingID.get(player.getUniqueId());
+                                    if (ID == null || !marketManager.ensureListingAccessible(player, data, "Items." + ID)) {
+                                        player.closeInventory();
+                                        return;
+                                    }
                                     int bid = bidding.get(player.getUniqueId());
                                     String topBidder = data.getString("Items." + ID + ".TopBidder");
 
@@ -986,6 +1012,10 @@ public class GuiListener implements Listener {
                                             int ID = data.getInt("Items." + i + ".StoreID");
 
                                             if (id == ID) {
+                                                if (!marketManager.ensureListingAccessible(player, data, "Items." + i)) {
+                                                    player.closeInventory();
+                                                    return;
+                                                }
                                                 if (player.hasPermission("crazyauctions.admin") || player.hasPermission("crazyauctions.force-end")) {
                                                     if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                                                         int num = 1;
@@ -1005,6 +1035,7 @@ public class GuiListener implements Listener {
                                                         data.set("OutOfTime/Cancelled." + num + ".Full-Time", data.getLong("Items." + i + ".Full-Time"));
                                                         data.set("OutOfTime/Cancelled." + num + ".StoreID", data.getInt("Items." + i + ".StoreID"));
                                                         data.set("OutOfTime/Cancelled." + num + ".Item", data.getString("Items." + i + ".Item"));
+                                                        marketManager.copyMarket(data, "Items." + i, "OutOfTime/Cancelled." + num);
                                                         data.set("Items." + i, null);
 
                                                         Files.data.save();
@@ -1139,10 +1170,8 @@ public class GuiListener implements Listener {
                             if (item.getItemMeta().hasDisplayName()) {
                                 if (item.getItemMeta().getDisplayName().equals(Methods.color(config.getString("Settings.GUISettings.OtherSettings.Confirm.Name")))) {
                                     String ID = IDs.get(player.getUniqueId());
-                                    long cost = data.getLong("Items." + ID + ".Price");
-                                    String seller = data.getString("Items." + ID + ".Seller");
 
-                                    if (!data.contains("Items." + ID)) {
+                                    if (ID == null || !data.contains("Items." + ID)) {
                                         playClick(player);
 
                                         openShop(player, shopType.get(player.getUniqueId()), shopCategory.get(player.getUniqueId()), 1);
@@ -1151,6 +1180,14 @@ public class GuiListener implements Listener {
 
                                         return;
                                     }
+
+                                    if (!marketManager.ensureListingAccessible(player, data, "Items." + ID)) {
+                                        player.closeInventory();
+                                        return;
+                                    }
+
+                                    long cost = data.getLong("Items." + ID + ".Price");
+                                    String seller = data.getString("Items." + ID + ".Seller");
 
                                     if (Methods.isInvFull(player)) {
                                         playClick(player);
@@ -1267,6 +1304,10 @@ public class GuiListener implements Listener {
                                         for (String i : data.getConfigurationSection("Items").getKeys(false)) {
                                             int ID = data.getInt("Items." + i + ".StoreID");
                                             if (id == ID) {
+                                                if (!marketManager.ensureListingAccessible(player, data, "Items." + i)) {
+                                                    player.closeInventory();
+                                                    return;
+                                                }
                                                 player.sendMessage(Messages.CANCELLED_ITEM.getMessage(player));
 
                                                 AuctionCancelledEvent event = new AuctionCancelledEvent(player, Methods.fromBase64(data.getString("Items." + i + ".Item")), Reasons.PLAYER_FORCE_CANCEL);
@@ -1279,6 +1320,7 @@ public class GuiListener implements Listener {
                                                 data.set("OutOfTime/Cancelled." + num + ".Full-Time", data.getLong("Items." + i + ".Full-Time"));
                                                 data.set("OutOfTime/Cancelled." + num + ".StoreID", data.getInt("Items." + i + ".StoreID"));
                                                 data.set("OutOfTime/Cancelled." + num + ".Item", data.getString("Items." + i + ".Item"));
+                                                marketManager.copyMarket(data, "Items." + i, "OutOfTime/Cancelled." + num);
 
                                                 data.set("Items." + i, null);
 
