@@ -71,6 +71,16 @@ Send any console errors or files you have through https://mclo.gs/ - (We don't o
 [![Discord Invite Button](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/badbones-s-live-chat-182615261403283459)
 </div>
 
+> ### 🏰 ¡Únete a la Comunidad Oficial de DrakesCraft!
+> 
+> * 🎮 **IP del Servidor**: `play.drakescraft.net` *(Java 1.21.11 & Bedrock)*
+> * 💬 **Discord Oficial**: [discord.gg/drakescraft](https://discord.gg/rR7FbfCt9Y)
+> * 🌐 **Web & Guía**: [drakescraft.net](https://drakescraft.net) — 🛒 **Tienda**: [tienda.drakescraft.net](https://tienda.drakescraft.net)
+> 
+> *¡Juega con este addon y más de 80 expansiones optimizadas en vivo en nuestra network de supervivencia técnica!*
+
+---
+
 ![CrazyAuctions Statistics](https://bstats.org/signatures/bukkit/CrazyAuctions.svg)
 </center>
 
