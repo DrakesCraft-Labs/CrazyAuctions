@@ -94,3 +94,13 @@ Send any console errors or files you have through https://mclo.gs/ - (We don't o
 [issues-url]: https://github.com/Crazy-Crew/CrazyAuctions/issues
 [license-shield]: https://img.shields.io/github/license/Crazy-Crew/CrazyAuctions.svg?style=flat&logo=appveyor
 [license-url]: https://github.com/Crazy-Crew/CrazyAuctions/blob/main/LICENSE
+
+## ⚖️ Upstream Attribution & License / Licencia y Créditos
+
+- **Original Project / Upstream**: Slimefun4 Community Addon.
+- **Port & Maintenance**: DrakesCraft Labs team (Compatibility for Paper / Purpur 1.21.11).
+- **License**: GPL-3.0 / MIT.
+- **Source Code**: [GitHub Repository](https://github.com/DrakesCraft-Labs/CrazyAuctions)
+- **Support & Issues**: [GitHub Issues](https://github.com/DrakesCraft-Labs/CrazyAuctions/issues) | [Discord](https://discord.gg/rR7FbfCt9Y)
+
+*This project is an open-source derivative work maintained by DrakesCraft Labs under the terms of its original license. All original assets and concepts belong to their respective creators.*
