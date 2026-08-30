@@ -336,6 +336,9 @@ public class GuiListener implements Listener {
         if (data.contains("OutOfTime/Cancelled")) {
             for (String i : data.getConfigurationSection("OutOfTime/Cancelled").getKeys(false)) {
                 if (data.getString("OutOfTime/Cancelled." + i + ".Seller") != null) {
+                    // Los expirados conservan el mercado de su publicación original. Sin este
+                    // filtro /ah expired se convierte en un puente entre modalidades.
+                    if (!marketManager.matches(player, data, "OutOfTime/Cancelled." + i)) continue;
                     if (data.getString("OutOfTime/Cancelled." + i + ".Seller").equalsIgnoreCase(player.getUniqueId().toString())) {
                         String price = Methods.getPrice(i, true);
                         String time = Methods.convertToTime(data.getLong("OutOfTime/Cancelled." + i + ".Full-Time"));
@@ -1393,6 +1396,7 @@ public class GuiListener implements Listener {
 
                                     if (data.contains("OutOfTime/Cancelled")) {
                                         for (String i : data.getConfigurationSection("OutOfTime/Cancelled").getKeys(false)) {
+                                            if (!marketManager.matches(player, data, "OutOfTime/Cancelled." + i)) continue;
                                             if (data.getString("OutOfTime/Cancelled." + i + ".Seller").equalsIgnoreCase(player.getUniqueId().toString())) {
                                                 if (Methods.isInvFull(player)) {
                                                     player.sendMessage(Messages.INVENTORY_FULL.getMessage(player));
@@ -1442,6 +1446,12 @@ public class GuiListener implements Listener {
                                             int ID = data.getInt("OutOfTime/Cancelled." + i + ".StoreID");
 
                                             if (id == ID) {
+                                                // La GUI puede quedar abierta durante un cambio de mundo. Revalidar
+                                                // antes de mutar evita retirar un ítem de otro mercado desde esa vista.
+                                                if (!marketManager.ensureListingAccessible(player, data, "OutOfTime/Cancelled." + i)) {
+                                                    openPlayersExpiredList(player, 1);
+                                                    return;
+                                                }
                                                 if (!Methods.isInvFull(player)) {
                                                     player.sendMessage(Messages.GOT_ITEM_BACK.getMessage(player));
 

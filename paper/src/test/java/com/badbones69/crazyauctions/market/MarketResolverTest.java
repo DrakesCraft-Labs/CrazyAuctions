@@ -43,4 +43,12 @@ class MarketResolverTest {
         assertTrue(this.resolver.matches("clasico", "clasico"));
         assertFalse(this.resolver.matches("world", "clasico"));
     }
+
+    @Test
+    void expiredListingsUseTheSameMarketBoundaryAsActiveListings() {
+        // Los expirados se guardan en otra sección YAML, pero su campo Market debe obedecer
+        // exactamente el mismo límite que una publicación activa.
+        assertTrue(this.resolver.matches("oneblock_world", "oneblock"));
+        assertFalse(this.resolver.matches("clasico", "oneblock"));
+    }
 }
