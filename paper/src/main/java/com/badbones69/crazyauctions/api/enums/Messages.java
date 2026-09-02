@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public enum Messages {
     
@@ -34,10 +35,10 @@ public enum Messages {
     SOLD_MESSAGE("Sold-Msg", "&7Thank you for buying this item."),
     BID_MORE_MONEY("Bid-More-Money", "&cYour bid is to low, please bid more."),
     NOT_A_CURRENCY("Not-A-Currency", "&cThat is not a currency. Please use Money or Tokens ."),
-    SELL_PRICE_TO_LOW("Sell-Price-To-Low", "&cYour sell price is to low the minimum is &a$10&c."),
-    SELL_PRICE_TO_HIGH("Sell-Price-To-High", "&cYour sell price is to high the maximum is &a$1000000&c."),
-    BID_PRICE_TO_LOW("Bid-Price-To-Low", "&cYour starting bid price is to low the minimum is &a$100&c."),
-    BID_PRICE_TO_HIGH("Bid-Price-To-High", "&cYour starting bid price is to high the maximum is &a$1000000&c."),
+    SELL_PRICE_TO_LOW("Sell-Price-To-Low", "&cYour sell price is to low the minimum is &a$%price%&c."),
+    SELL_PRICE_TO_HIGH("Sell-Price-To-High", "&cYour sell price is to high the maximum is &a$%price%&c."),
+    BID_PRICE_TO_LOW("Bid-Price-To-Low", "&cYour starting bid price is to low the minimum is &a$%price%&c."),
+    BID_PRICE_TO_HIGH("Bid-Price-To-High", "&cYour starting bid price is to high the maximum is &a$%price%&c."),
     BOUGHT_ITEM("Bought-Item", "&7You have just bought a item for &a$%price%&7."),
     WIN_BIDDING("Win-Bidding", "&7You have just won a bid for &a$%price%&7. Do /Ah Collect to collect your winnings."),
     PLAYER_BOUGHT_ITEM("Player-Bought-Item", "&7%player% has bought your item for &a$%price%."),
@@ -73,6 +74,16 @@ public enum Messages {
     }
 
     public static final FileConfiguration messages = Files.messages.getConfiguration();
+
+    private static final String PRICE_PLACEHOLDER = "%price%";
+
+    private static final Pattern HARD_CODED_AMOUNT = Pattern.compile("\\$\\d+");
+
+    private static final List<Messages> PRICE_LIMIT_MESSAGES = List.of(
+            SELL_PRICE_TO_LOW,
+            SELL_PRICE_TO_HIGH,
+            BID_PRICE_TO_LOW,
+            BID_PRICE_TO_HIGH);
     
     public static String convertList(final List<String> list) {
         StringBuilder message = new StringBuilder();
@@ -109,9 +120,46 @@ public enum Messages {
             }
         }
 
+        if (migratePriceLimits()) {
+            saveFile = true;
+        }
+
         if (saveFile) {
             Files.messages.save();
         }
+    }
+
+    /**
+     * Sustituye el importe fijo de los avisos de precio por el marcador {@code %price%}.
+     *
+     * <p>Los mensajes se generaron con el limite grabado a fuego ({@code $10}, {@code $100},
+     * {@code $1000000}), asi que un servidor con otros limites en {@code config.yml} anunciaba un
+     * precio que el comando rechazaba. Solo se toca la cifra: cualquier traduccion o redaccion
+     * propia del administrador se conserva, y las lineas ya migradas se dejan intactas.</p>
+     *
+     * @return {@code true} si hubo que reescribir alguna linea
+     */
+    private static boolean migratePriceLimits() {
+        boolean migrated = false;
+
+        for (Messages message : PRICE_LIMIT_MESSAGES) {
+            String path = "Messages." + message.getPath();
+            String current = messages.getString(path);
+
+            if (current == null || current.contains(PRICE_PLACEHOLDER)) {
+                continue;
+            }
+
+            String updated = HARD_CODED_AMOUNT.matcher(current).replaceAll("\\$" + PRICE_PLACEHOLDER);
+
+            if (!updated.equals(current)) {
+                messages.set(path, updated);
+
+                migrated = true;
+            }
+        }
+
+        return migrated;
     }
     
     public String getMessage(final CommandSender sender) {

@@ -8,6 +8,7 @@ import com.badbones69.crazyauctions.api.events.AuctionCancelledEvent;
 import com.badbones69.crazyauctions.api.events.AuctionListEvent;
 import com.badbones69.crazyauctions.controllers.GuiListener;
 import com.badbones69.crazyauctions.market.AuctionMarketManager;
+import com.badbones69.crazyauctions.market.ListingRules;
 import com.ryderbelserion.vital.paper.api.files.FileManager;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -248,25 +249,31 @@ public class AuctionCommand implements CommandExecutor {
                         long price = Long.parseLong(args[1]);
 
                         if (args[0].equalsIgnoreCase("bid")) {
-                            if (price < config.getLong("Settings.Minimum-Bid-Price", 100)) {
-                                player.sendMessage(Messages.BID_PRICE_TO_LOW.getMessage(sender));
+                            long minimum = config.getLong("Settings.Minimum-Bid-Price", 100);
+                            long maximum = config.getLong("Settings.Max-Beginning-Bid-Price", 1000000);
+
+                            if (price < minimum) {
+                                player.sendMessage(Messages.BID_PRICE_TO_LOW.getMessage(sender, priceLimit(minimum)));
 
                                 return true;
                             }
 
-                            if (price > config.getLong("Settings.Max-Beginning-Bid-Price", 1000000)) {
-                                player.sendMessage(Messages.BID_PRICE_TO_HIGH.getMessage(sender));
+                            if (price > maximum) {
+                                player.sendMessage(Messages.BID_PRICE_TO_HIGH.getMessage(sender, priceLimit(maximum)));
 
                                 return true;
                             }
                         } else {
-                            if (price < config.getLong("Settings.Minimum-Sell-Price", 10)) {
-                                player.sendMessage(Messages.SELL_PRICE_TO_LOW.getMessage(sender));
+                            long minimum = config.getLong("Settings.Minimum-Sell-Price", 10);
+                            long maximum = config.getLong("Settings.Max-Beginning-Sell-Price", 1000000);
+
+                            if (price < minimum) {
+                                player.sendMessage(Messages.SELL_PRICE_TO_LOW.getMessage(sender, priceLimit(minimum)));
 
                                 return true;
                             }
-                            if (price > config.getLong("Settings.Max-Beginning-Sell-Price", 1000000)) {
-                                player.sendMessage(Messages.SELL_PRICE_TO_HIGH.getMessage(sender));
+                            if (price > maximum) {
+                                player.sendMessage(Messages.SELL_PRICE_TO_HIGH.getMessage(sender, priceLimit(maximum)));
 
                                 return true;
                             }
@@ -331,7 +338,7 @@ public class AuctionCommand implements CommandExecutor {
                             }
                         }
 
-                        if (config.getStringList("Settings.BlackList").contains(item.getType().getKey().getKey())) {
+                        if (ListingRules.isBlackListed(config.getStringList("Settings.BlackList"), item.getType().getKey().getKey())) {
                             player.sendMessage(Messages.ITEM_BLACKLISTED.getMessage(sender));
 
                             return true;
@@ -555,4 +562,19 @@ public class AuctionCommand implements CommandExecutor {
 
         return true;
     }*/
+
+    /**
+     * Marcadores con el limite real de precio para que el aviso no contradiga al config.
+     *
+     * @param limit limite leido de {@code config.yml}
+     * @return marcadores para {@link Messages#getMessage(org.bukkit.command.CommandSender, Map)}
+     */
+    private Map<String, String> priceLimit(final long limit) {
+        Map<String, String> placeholders = new HashMap<>();
+
+        placeholders.put("%Price%", String.valueOf(limit));
+        placeholders.put("%price%", String.valueOf(limit));
+
+        return placeholders;
+    }
 }
