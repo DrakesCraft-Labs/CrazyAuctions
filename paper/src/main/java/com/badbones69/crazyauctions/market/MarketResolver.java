@@ -48,7 +48,18 @@ public final class MarketResolver {
         if (this.deniedWorlds.contains(world)) {
             return Optional.empty();
         }
-        return Optional.ofNullable(this.worldMarkets.get(world));
+        String direct = this.worldMarkets.get(world);
+        if (direct != null) {
+            return Optional.of(direct);
+        }
+        for (Map.Entry<String, String> entry : this.worldMarkets.entrySet()) {
+            String mappedWorld = entry.getKey();
+            String market = entry.getValue();
+            if (world.startsWith(mappedWorld) || mappedWorld.startsWith(world) || world.contains(market)) {
+                return Optional.of(market);
+            }
+        }
+        return Optional.empty();
     }
 
     /** Compares a world against a listing, assigning legacy entries to the configured market. */
